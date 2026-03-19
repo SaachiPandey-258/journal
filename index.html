@@ -903,7 +903,6 @@ body.dark .mood-opt.sel{background:#3a1e28;}
 <div id="ptr-indicator"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
 
 <script>
-(function(){
 var MOODS=[{id:'great',e:'&#128516;',l:'Great',c:'#7bc47e'},{id:'good',e:'&#128578;',l:'Good',c:'#8aab90'},{id:'okay',e:'&#128528;',l:'Okay',c:'#c4975a'},{id:'meh',e:'&#128532;',l:'Meh',c:'#c4906a'},{id:'rough',e:'&#128542;',l:'Rough',c:'#c47a7a'}];
 var QUOTES=[{q:'Fill your paper with the breathings of your heart.',a:'William Wordsworth'},{q:'Journal writing is a voyage to the interior.',a:'Christina Baldwin'},{q:'In the journal I do not just express myself — I create myself.',a:'Susan Sontag'},{q:'Write hard and clear about what hurts.',a:'Ernest Hemingway'},{q:'There is no greater agony than bearing an untold story inside you.',a:'Maya Angelou'},{q:'The scariest moment is always just before you start.',a:'Stephen King'},{q:'A poem begins as a lump in the throat, a sense of wrong.',a:'Robert Frost'},{q:'I write to give myself strength. I write to be the characters that I am not.',a:'Joss Whedon'},{q:'Keep a diary and one day it\'ll keep you.',a:'Mae West'},{q:'I can shake off everything as I write; my sorrows disappear.',a:'Anne Frank'},{q:'The wound is the place where the light enters you.',a:'Rumi'},{q:'What you seek is seeking you.',a:'Rumi'},{q:'The world always seems brighter when you\'ve just made something.',a:'Neil Gaiman'},{q:'Start writing. The water does not flow until the faucet is turned on.',a:'Louis L\'Amour'},{q:'Writing is a way of talking without being interrupted.',a:'Jules Renard'},{q:'You have to write the book that wants to be written.',a:'Madeleine L\'Engle'},{q:'Poetry is when an emotion has found its thought and the thought has found words.',a:'Robert Frost'},{q:'Not all those who wander are lost.',a:'J.R.R. Tolkien'},{q:'She is too fond of books, and it has turned her brain.',a:'Louisa May Alcott'},{q:'I am not afraid of storms, for I am learning how to sail my ship.',a:'Louisa May Alcott'}];
 var PROMPTS=['What made you smile today, even briefly?','Describe a moment this week when you felt truly yourself.','What are you avoiding, and why?','Write a letter to someone you haven\'t forgiven yet — including yourself.','If your feelings today were a weather pattern, what would they look like?','What\'s one thing you wish people understood about you?','Describe your current chapter in three words.','What would you do if you knew you couldn\'t fail?','What has changed in you over the past year?','Write about a sound that comforts you.','What does home feel like to you right now?','What are you secretly proud of?','What does rest really feel like for you?','If your life right now were a book title, what would it be?','Write about a time you surprised yourself.','What emotion have you been carrying the longest?','What are you ready to let go of?','What do you want more of? What do you want less of?','Finish this sentence: I feel most alive when...','What does your body need right now?','Write about your relationship with your own mind.','What belief have you changed your mind about recently?','Who made you feel seen this week?','What would you tell yourself six months ago?'];
@@ -1584,7 +1583,6 @@ document.getElementById('btn-save-entry').addEventListener('click',function(){
 });
 
 // POEM
-var _editPoem=null,_poemTags=[];
 function openNewPoem(){_editPoem=null;_poemTags=[];document.getElementById('poem-title').value='';document.getElementById('poem-body').value='';document.getElementById('poem-notes').value='';document.getElementById('poem-modal-ttl').textContent='New Poem';document.getElementById('btn-save-poem').textContent='Save Poem';renderTagsUI('poem-tags-wrap','poem-tag-inp',_poemTags);document.getElementById('modal-poem').classList.add('open');}
 
 // RANT
@@ -2098,7 +2096,7 @@ function renderPoemIdeas(){
 }
 
 initTheme();checkPin();fetchWeather();renderHome();
-})();
+
 </script>
 </body>
 </html>
