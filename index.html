@@ -912,7 +912,31 @@ var LETTER_TYPES=['A person I miss','Someone I resent','My past self','My future
 var DREAM_TYPES=['Dream','2am thought','Random realization','Intrusive thought','Shower thought'];
 
 function db(){try{return JSON.parse(localStorage.getItem('inkwell5')||'{}');}catch(e){return{};}}
-function saveDb(d){try{localStorage.setItem('inkwell5',JSON.stringify(d));}catch(e){showToast('Save failed');}}
+function saveDb(d){
+  try{
+    localStorage.setItem('inkwell5',JSON.stringify(d));
+  }catch(e){
+    // Storage full — try clearing old daily photos first then retry
+    try{
+      var cleaned=JSON.parse(JSON.stringify(d));
+      if(cleaned.dailyPhotos){
+        var td=today();
+        // keep only today's photos, drop older ones
+        Object.keys(cleaned.dailyPhotos).forEach(function(k){if(k!==td)delete cleaned.dailyPhotos[k];});
+      }
+      localStorage.setItem('inkwell5',JSON.stringify(cleaned));
+      showToast('Old photos cleared to free space');
+    }catch(e2){
+      // Still full — drop all photos
+      try{
+        var cleaned2=JSON.parse(JSON.stringify(d));
+        delete cleaned2.dailyPhotos;
+        localStorage.setItem('inkwell5',JSON.stringify(cleaned2));
+        showToast('Storage full — photos removed. Try smaller images.');
+      }catch(e3){showToast('Storage full — please clear some data in Settings');}
+    }
+  }
+}
 function pad(n){return(n<10?'0':'')+n;}
 function today(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function fmtDate(ds){var d=new Date(ds.slice(0,10)+'T12:00:00');return d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
@@ -1065,16 +1089,32 @@ function carouselNav(dir){
 
 function handleDailyPhoto(e){
   var file=e.target.files[0];if(!file)return;
-  var r=new FileReader();r.onload=function(ev){
-    var data=db();if(!data.dailyPhotos)data.dailyPhotos={};
-    if(!data.dailyPhotos[today()])data.dailyPhotos[today()]={};
-    var dp=data.dailyPhotos[today()];
-    // find next empty slot
-    var slot=1;while(dp['p'+slot]&&slot<=MAX_PHOTOS)slot++;
-    if(slot>MAX_PHOTOS){showToast('Max 5 photos per day');return;}
-    dp['p'+slot]=ev.target.result;
-    saveDb(data);_carouselIdx=Object.keys(dp).length-1;renderDailyPhotos();haptic('success');
-  };r.readAsDataURL(file);e.target.value='';
+  var r=new FileReader();
+  r.onload=function(ev){
+    // Compress image using canvas before saving
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.createElement('canvas');
+      var MAX=800; // max dimension in px
+      var w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
+      else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
+      canvas.width=w;canvas.height=h;
+      var ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      var compressed=canvas.toDataURL('image/jpeg',0.7); // 70% quality JPEG
+      var data=db();if(!data.dailyPhotos)data.dailyPhotos={};
+      if(!data.dailyPhotos[today()])data.dailyPhotos[today()]={};
+      var dp=data.dailyPhotos[today()];
+      var slot=1;while(dp['p'+slot]&&slot<=MAX_PHOTOS)slot++;
+      if(slot>MAX_PHOTOS){showToast('Max 5 photos per day');return;}
+      dp['p'+slot]=compressed;
+      saveDb(data);_carouselIdx=Object.keys(dp).length-1;renderDailyPhotos();haptic('success');
+      showToast('Photo added ✓');
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(file);e.target.value='';
 }
 function removeDailyPhoto2(slot){
   haptic('medium');
@@ -1567,7 +1607,28 @@ function openEditEntry(ds){
   document.getElementById('modal-entry').classList.add('open');
 }
 function renderMoodPicker(){var p=document.getElementById('mood-picker');p.innerHTML='';MOODS.forEach(function(m){var o=document.createElement('div');o.className='mood-opt'+(m.id===_selMood?' sel':'');o.innerHTML='<div class="mood-e">'+m.e+'</div><div class="mood-l">'+m.l+'</div>';o.addEventListener('click',function(){_selMood=m.id;renderMoodPicker();});p.appendChild(o);});}
-function handlePhoto(e){var file=e.target.files[0];if(!file)return;var r=new FileReader();r.onload=function(ev){_photoData=ev.target.result;document.getElementById('photo-prev').src=_photoData;document.getElementById('photo-prev').style.display='block';document.getElementById('photo-rm').style.display='flex';document.getElementById('photo-ph').style.display='none';};r.readAsDataURL(file);e.target.value='';}
+function handlePhoto(e){
+  var file=e.target.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.createElement('canvas');
+      var MAX=900;var w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
+      else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      _photoData=canvas.toDataURL('image/jpeg',0.75);
+      document.getElementById('photo-prev').src=_photoData;
+      document.getElementById('photo-prev').style.display='block';
+      document.getElementById('photo-rm').style.display='flex';
+      document.getElementById('photo-ph').style.display='none';
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(file);e.target.value='';
+}
 function removePhoto(e){e.stopPropagation();_photoData=null;document.getElementById('photo-prev').style.display='none';document.getElementById('photo-rm').style.display='none';document.getElementById('photo-ph').style.display='flex';}
 
 function renderTagsUI(wrapId,inpId,tagsArr){var wrap=document.getElementById(wrapId);var inp=document.getElementById(inpId);wrap.querySelectorAll('.tag-bubble').forEach(function(b){b.remove();});tagsArr.forEach(function(t,i){var b=document.createElement('div');b.className='tag-bubble';b.innerHTML=t+'<button onclick="removeTag(\''+wrapId+'\',\''+inpId+'\','+i+')">x</button>';wrap.insertBefore(b,inp);});}
@@ -1575,15 +1636,28 @@ function handleTagKey(e,wrapId,inpId,arr){if(e.key==='Enter'||e.key===','){e.pre
 function removeTag(wrapId,inpId,i){var arr=wrapId==='tags-wrap'?_entryTags:_poemTags;arr.splice(i,1);renderTagsUI(wrapId,inpId,arr);}
 
 document.getElementById('btn-save-entry').addEventListener('click',function(){
-  var title=document.getElementById('inp-title').value.trim();var body=document.getElementById('inp-body').value.trim();
+  var title=document.getElementById('inp-title').value.trim();
+  var body=document.getElementById('inp-body').value.trim();
   if(!title&&!body){showToast('Write something first');return;}
-  var data=db();if(!data.entries)data.entries={};var ds=_editDate||today();
-  data.entries[ds]={mood:_selMood,title:title,body:body,gratitude:[document.getElementById('g1').value.trim(),document.getElementById('g2').value.trim(),document.getElementById('g3').value.trim()],tags:_entryTags.slice(),photo:_photoData,ts:Date.now()};
-  saveDb(data);closeModal('modal-entry');renderHome();renderEntries();renderMonthly();showToast(_editDate?'Updated!':'Saved!');
+  var data=db();if(!data.entries)data.entries={};
+  var ds=_editDate||today();
+  data.entries[ds]={
+    mood:_selMood,title:title,body:body,
+    gratitude:[document.getElementById('g1').value.trim(),document.getElementById('g2').value.trim(),document.getElementById('g3').value.trim()],
+    tags:_entryTags.slice(),photo:_photoData,ts:Date.now()
+  };
+  saveDb(data);
+  // verify it actually saved
+  var check=db();
+  if(!check.entries||!check.entries[ds]){
+    showToast('Save failed — try removing the photo to free space');
+    return;
+  }
+  closeModal('modal-entry');
+  renderHome();renderEntries();renderMonthly();
+  showToast(_editDate?'Entry updated!':'Entry saved!');
 });
 
-// POEM
-function openNewPoem(){_editPoem=null;_poemTags=[];document.getElementById('poem-title').value='';document.getElementById('poem-body').value='';document.getElementById('poem-notes').value='';document.getElementById('poem-modal-ttl').textContent='New Poem';document.getElementById('btn-save-poem').textContent='Save Poem';renderTagsUI('poem-tags-wrap','poem-tag-inp',_poemTags);document.getElementById('modal-poem').classList.add('open');}
 
 // RANT
 var _editRant=null,_intensity=1;
