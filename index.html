@@ -570,8 +570,8 @@ body.dark .mood-opt.sel{background:#3a1e28;}
     <div class="sec-title">Quick Access</div>
     <div class="feature-nav">
       <div class="fnav-card" onclick="showPage('letters')"><div class="fnav-icon">&#128140;</div><div class="fnav-title">Unsent Letters</div><div class="fnav-sub">Words you can't say out loud</div><div class="fnav-count" id="fn-letters">0 letters</div></div>
-      <div class="fnav-card" onclick="showPage('loops')"><div class="fnav-icon">&#129504;</div><div class="fnav-title">Thought Loops</div><div class="fnav-sub">Break the spiral</div><div class="fnav-count" id="fn-loops">0 entries</div></div>
-      <div class="fnav-card" onclick="showPage('evidence')"><div class="fnav-icon">&#127942;</div><div class="fnav-title">Evidence Log</div><div class="fnav-sub">Wins, compliments, moments</div><div class="fnav-count" id="fn-evidence">0 logged</div></div>
+      <div class="fnav-card" onclick="showPage('vocab')"><div class="fnav-icon">&#128218;</div><div class="fnav-title">Vocab Builder</div><div class="fnav-sub">Grow your words</div><div class="fnav-count" id="fn-vocab">0 words</div></div>
+      <div class="fnav-card" onclick="showPage('ideas')"><div class="fnav-icon">&#128161;</div><div class="fnav-title">Creative Ideas</div><div class="fnav-sub">Poems, captions, sparks</div><div class="fnav-count" id="fn-ideas">0 ideas</div></div>
       <div class="fnav-card" onclick="showPage('dreams')"><div class="fnav-icon">&#127769;</div><div class="fnav-title">Dream Vault</div><div class="fnav-sub">2am thoughts &amp; dreams</div><div class="fnav-count" id="fn-dreams">0 captured</div></div>
     </div>
 
@@ -605,12 +605,36 @@ body.dark .mood-opt.sel{background:#3a1e28;}
   </div>
 
   <!-- POEM IDEAS -->
-  <div class="page" id="page-poem-ideas">
-    <div class="page-header">
-      <h1>&#128161; Poem Ideas</h1>
-      <p>Lines, sparks, fragments — catch them before they vanish</p>
+  <!-- CREATIVE IDEAS -->
+  <div class="page" id="page-ideas">
+    <div class="page-header"><h1>&#128161; Creative Ideas</h1><p>Catch them before they vanish</p></div>
+    <div id="ideas-type-filters" style="display:flex;gap:8px;padding:0 16px;margin-bottom:12px;overflow-x:auto"></div>
+    <div id="ideas-list"></div>
+  </div>
+
+  <!-- VOCAB BUILDER -->
+  <div class="page" id="page-vocab">
+    <div class="page-header" style="padding-bottom:0"><h1>&#128218; Vocab Builder</h1><p>Your personal dictionary</p></div>
+    <div style="margin:0 16px 14px;background:linear-gradient(135deg,#f0f4ff,#e8eeff);border:1px solid #c8d4f8;border-radius:var(--r);padding:18px;">
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:var(--text);margin-bottom:4px">Build your vocabulary</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Add words you discover. Let AI suggest more.</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;text-align:center;background:rgba(255,255,255,.6);border-radius:10px;padding:8px 4px"><div id="vb-total" style="font-family:'Playfair Display',serif;font-size:22px;color:#6a8ac4">0</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">Saved</div></div>
+        <div style="flex:1;text-align:center;background:rgba(255,255,255,.6);border-radius:10px;padding:8px 4px"><div id="vb-mastered" style="font-family:'Playfair Display',serif;font-size:22px;color:#6a8ac4">0</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">Mastered</div></div>
+        <div style="flex:1;text-align:center;background:rgba(255,255,255,.6);border-radius:10px;padding:8px 4px"><div id="vb-week" style="font-family:'Playfair Display',serif;font-size:22px;color:#6a8ac4">0</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">This Week</div></div>
+      </div>
     </div>
-    <div id="poem-ideas-list"></div>
+    <button id="vocab-ai-btn" onclick="fetchAiWords()" style="margin:0 16px 10px;width:calc(100% - 32px);padding:13px;border-radius:14px;background:linear-gradient(135deg,#6a8ac4,#5070b0);border:none;color:white;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">&#10024; Suggest words with Gemini AI</button>
+    <div id="vocab-key-wrap" style="margin:0 16px 10px;display:none">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Gemini API Key (free at aistudio.google.com)</div>
+      <div style="display:flex;gap:8px"><input class="form-inp" id="gemini-key-inp" placeholder="AIza..." style="margin:0;flex:1;padding:10px 12px;font-size:13px"><button onclick="saveGeminiKey()" style="padding:10px 14px;border-radius:12px;background:var(--rose);border:none;color:white;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;font-size:13px;white-space:nowrap">Save</button></div>
+    </div>
+    <div id="ai-sug-panel" style="margin:0 16px 12px;background:linear-gradient(135deg,#f4f6ff,#eef0ff);border:1px solid #c8d0f0;border-radius:var(--r);padding:14px;display:none">
+      <div style="font-size:10px;font-weight:700;color:#6a8ac4;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">&#10024; AI Suggestions — tap + to save</div>
+      <div id="ai-sug-grid"></div>
+    </div>
+    <div style="margin:0 16px 12px;position:relative"><svg viewBox="0 0 24 24" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;stroke:var(--muted);fill:none;stroke-width:1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-inp" id="vocab-search" placeholder="Search words..." oninput="renderVocab()" style="padding-left:42px"></div>
+    <div id="vocab-list"></div>
   </div>
 
   <!-- RANT -->
@@ -638,16 +662,8 @@ body.dark .mood-opt.sel{background:#3a1e28;}
     <div class="page-header"><h1>&#128140; Unsent Letters</h1><p>Words you could never say out loud</p></div>
     <div id="letters-list"></div>
   </div>
-
-  <!-- THOUGHT LOOPS -->
-  <div class="page" id="page-loops">
-    <div class="page-header"><h1>&#129504; Thought Loops</h1><p>Capture the spiral. Break the pattern.</p></div>
     <div id="loops-list"></div>
   </div>
-
-  <!-- EVIDENCE LOG -->
-  <div class="page" id="page-evidence">
-    <div class="page-header"><h1>&#127942; Evidence Log</h1><p>Proof that you are doing better than you think</p></div>
     <div id="evidence-list"></div>
   </div>
 
@@ -662,10 +678,6 @@ body.dark .mood-opt.sel{background:#3a1e28;}
     <div class="page-header"><h1>&#127769; Dream Vault</h1><p>2am thoughts, dreams, random realizations</p></div>
     <div id="dreams-list"></div>
   </div>
-
-  <!-- LIFE DASHBOARD -->
-  <div class="page" id="page-dashboard">
-    <div class="page-header"><h1>&#128200; Life Dashboard</h1><p>Weekly pulse check</p></div>
     <div class="dash-card" id="dash-current">
       <div class="dash-week-label" id="dash-week-label"></div>
       <div id="dash-sliders"></div>
@@ -693,7 +705,7 @@ body.dark .mood-opt.sel{background:#3a1e28;}
     <div class="settings-section"><h3>Stats</h3>
       <div class="srow" style="cursor:default"><span class="srow-l">Total entries</span><span class="srow-r" id="ss-total">0</span></div>
       <div class="srow" style="cursor:default"><span class="srow-l">Poems</span><span class="srow-r" id="ss-poems">0</span></div>
-      <div class="srow" style="cursor:default"><span class="srow-l">Letters</span><span class="srow-r" id="ss-letters">0</span></div>
+      <div class="srow" style="cursor:default"><span class="srow-l">Letters</span><span class="srow-r" id="ss-vocab">0</span></div>
       <div class="srow" style="cursor:default"><span class="srow-l">Words written</span><span class="srow-r" id="ss-wc">0</span></div>
       <div class="srow" style="cursor:default"><span class="srow-l">Streak</span><span class="srow-r" id="ss-streak">0</span></div>
     </div>
@@ -706,7 +718,7 @@ body.dark .mood-opt.sel{background:#3a1e28;}
   <button class="active" id="nav-home" onclick="showPage('home')"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>Home</button>
   <button id="nav-entries" onclick="showPage('entries')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Entries</button>
   <button id="nav-poems" onclick="showPage('poems')"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M8 12h8M8 8h5M8 16h3"/></svg>Poems</button>
-  <button id="nav-poem-ideas" onclick="showPage('poem-ideas')"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7c0 3-1.8 5.4-4.5 6.5V18a1 1 0 01-1 1h-3a1 1 0 01-1-1v-2.5C6.8 14.4 5 12 5 9a7 7 0 017-7z"/><path d="M9 21h6"/></svg>Ideas</button>
+  <button id="nav-goals" onclick="showPage('goals')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Goals</button>
   <button id="nav-more" onclick="openMoreDrawer()"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>More</button>
  </nav>
 
@@ -716,17 +728,68 @@ body.dark .mood-opt.sel{background:#3a1e28;}
   <div class="more-drawer-handle"></div>
   <div class="more-drawer-title">Everything Else</div>
   <div class="more-grid">
-   <div class="more-item" onclick="closeMoreDrawer();showPage('goals')"><div class="more-item-icon">&#127919;</div><div class="more-item-label">Goals &amp; Tasks</div><div class="more-item-sub">Calendar view</div></div>
-   <div class="more-item" onclick="closeMoreDrawer();showPage('monthly')"><div class="more-item-icon">&#128197;</div><div class="more-item-label">Monthly Review</div><div class="more-item-sub">Patterns &amp; stats</div></div>
+   <div class="more-item" onclick="closeMoreDrawer();showPage('vocab')"><div class="more-item-icon">&#128218;</div><div class="more-item-label">Vocab Builder</div><div class="more-item-sub">Grow your words</div><div class="more-item-count" id="mn-vocab">0 words</div></div>
+   <div class="more-item" onclick="closeMoreDrawer();showPage('ideas')"><div class="more-item-icon">&#128161;</div><div class="more-item-label">Creative Ideas</div><div class="more-item-sub">Poems, captions, sparks</div><div class="more-item-count" id="mn-ideas">0 ideas</div></div>
    <div class="more-item" onclick="closeMoreDrawer();showPage('rant')"><div class="more-item-icon">&#128293;</div><div class="more-item-label">Crashout</div><div class="more-item-sub">Vent freely</div><div class="more-item-count" id="mn-rant">0 rants</div></div>
+   <div class="more-item" onclick="closeMoreDrawer();showPage('letters')"><div class="more-item-icon">&#128140;</div><div class="more-item-label">Letters</div><div class="more-item-sub">Unsent words</div><div class="more-item-count" id="mn-letters">0 letters</div></div>
+   <div class="more-item" onclick="closeMoreDrawer();showPage('dreams')"><div class="more-item-icon">&#127769;</div><div class="more-item-label">Dream Vault</div><div class="more-item-sub">2am thoughts</div><div class="more-item-count" id="mn-dreams">0 captured</div></div>
    <div class="more-item" onclick="closeMoreDrawer();showPage('social')"><div class="more-item-icon">&#129309;</div><div class="more-item-label">Social Check</div><div class="more-item-sub">Reality check</div><div class="more-item-count" id="mn-social">0 logged</div></div>
-   <div class="more-item" onclick="closeMoreDrawer();showPage('dashboard')"><div class="more-item-icon">&#128200;</div><div class="more-item-label">Life Dashboard</div><div class="more-item-sub">Weekly pulse</div></div>
-   <div class="more-item" onclick="closeMoreDrawer();showPage('settings')"><div class="more-item-icon">&#9881;&#65039;</div><div class="more-item-label">Settings</div><div class="more-item-sub">PIN, theme...</div></div>
+   <div class="more-item" onclick="closeMoreDrawer();showPage('monthly')"><div class="more-item-icon">&#128197;</div><div class="more-item-label">Monthly</div><div class="more-item-sub">Patterns &amp; stats</div></div>
+   <div class="more-item" onclick="closeMoreDrawer();showPage('settings')"><div class="more-item-icon">&#9881;&#65039;</div><div class="more-item-label">Settings</div><div class="more-item-sub">PIN, theme, AI key</div></div>
   </div>
  </div>
 
  <button id="fab" onclick="openNewEntry()"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
 </div><!-- end app -->
+
+<!-- IDEA TYPE PICKER -->
+<div class="overlay" id="modal-idea-pick">
+ <div class="modal">
+  <div class="drag-handle"></div>
+  <div class="modal-ttl">What kind of idea?</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+   <div onclick="openIdeaWrite('poem')" style="padding:16px 12px;border-radius:16px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#127800;</div><div style="font-size:13px;font-weight:700;color:var(--text)">Poem Idea</div><div style="font-size:10px;color:var(--muted);margin-top:2px">A line, image or theme</div></div>
+   <div onclick="openIdeaWrite('caption')" style="padding:16px 12px;border-radius:16px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128247;</div><div style="font-size:13px;font-weight:700;color:var(--text)">Insta Caption</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Perfect words for a post</div></div>
+   <div onclick="openIdeaWrite('spark')" style="padding:16px 12px;border-radius:16px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#10024;</div><div style="font-size:13px;font-weight:700;color:var(--text)">Random Spark</div><div style="font-size:10px;color:var(--muted);margin-top:2px">A line, thought, fragment</div></div>
+   <div onclick="openIdeaWrite('obs')" style="padding:16px 12px;border-radius:16px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128064;</div><div style="font-size:13px;font-weight:700;color:var(--text)">Observation</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Something you noticed</div></div>
+  </div>
+  <button class="btn btn-ghost" onclick="closeModal('modal-idea-pick')">Cancel</button>
+ </div>
+</div>
+
+<!-- IDEA WRITE -->
+<div class="overlay" id="modal-idea-write">
+ <div class="modal">
+  <div class="drag-handle"></div>
+  <div class="modal-ttl" id="idea-write-ttl">New Idea</div>
+  <div class="form-group"><div class="form-lbl" id="idea-write-lbl">Your idea</div><textarea class="form-inp poem-inp" id="idea-body" placeholder="Catch it before it fades..."></textarea></div>
+  <div class="form-group"><div class="form-lbl">Source (optional)</div><input class="form-inp" id="idea-source" placeholder="e.g. 2am, bus ride, shower..."></div>
+  <div class="form-group"><div class="form-lbl">Tags</div><div class="tags-inp-wrap" id="idea-tags-wrap"><input class="tag-raw-inp" id="idea-tag-inp" placeholder="Tag..." onkeydown="handleTagKey(event,'idea-tags-wrap','idea-tag-inp',_ideaTags)"></div></div>
+  <button class="btn btn-rose" id="btn-save-idea">Save Idea</button>
+  <button class="btn btn-ghost" onclick="closeModal('modal-idea-write')">Cancel</button>
+ </div>
+</div>
+
+<!-- VOCAB ADD -->
+<div class="overlay" id="modal-vocab">
+ <div class="modal">
+  <div class="drag-handle"></div>
+  <div class="modal-ttl" id="vocab-modal-ttl">Add Word</div>
+  <div class="form-group"><div class="form-lbl">Word</div><input class="form-inp" style="font-family:'Playfair Display',serif;font-size:19px" id="vocab-word" placeholder="e.g. capricious"></div>
+  <div class="form-group"><div class="form-lbl">Part of speech</div>
+   <div style="display:flex;gap:7px;flex-wrap:wrap" id="pos-row">
+    <div class="dream-chip on" onclick="setPOS(this,'adjective')">Adjective</div>
+    <div class="dream-chip" onclick="setPOS(this,'noun')">Noun</div>
+    <div class="dream-chip" onclick="setPOS(this,'verb')">Verb</div>
+    <div class="dream-chip" onclick="setPOS(this,'adverb')">Adverb</div>
+   </div>
+  </div>
+  <div class="form-group"><div class="form-lbl">Definition</div><textarea class="form-inp" id="vocab-def" placeholder="What does it mean?" style="height:75px"></textarea></div>
+  <div class="form-group"><div class="form-lbl">Example in daily life</div><textarea class="form-inp" id="vocab-example" placeholder="How would you use it in a sentence?" style="height:75px"></textarea></div>
+  <button class="btn btn-rose" id="btn-save-vocab">Save Word</button>
+  <button class="btn btn-ghost" onclick="closeModal('modal-vocab')">Cancel</button>
+ </div>
+</div>
 
 <!-- ENTRY MODAL -->
 <div class="overlay" id="modal-entry">
@@ -815,11 +878,6 @@ body.dark .mood-opt.sel{background:#3a1e28;}
   <button class="btn btn-ghost" onclick="closeModal('modal-letter')">Cancel</button>
  </div>
 </div>
-
-<!-- THOUGHT LOOP MODAL -->
-<div class="overlay" id="modal-loop">
- <div class="modal">
-  <div class="drag-handle"></div>
   <div class="modal-ttl" id="loop-modal-ttl">Thought Loop</div>
   <div class="form-group"><div class="form-lbl">The thought spiraling in your head</div><textarea class="form-inp" id="loop-thought" placeholder="I keep thinking about..." style="height:70px"></textarea></div>
   <div class="form-group"><div class="form-lbl">Why is it bothering me?</div><textarea class="form-inp" id="loop-why" placeholder="Deep down, this bothers me because..." style="height:80px"></textarea></div>
@@ -829,11 +887,6 @@ body.dark .mood-opt.sel{background:#3a1e28;}
   <button class="btn btn-ghost" onclick="closeModal('modal-loop')">Cancel</button>
  </div>
 </div>
-
-<!-- EVIDENCE MODAL -->
-<div class="overlay" id="modal-evidence">
- <div class="modal">
-  <div class="drag-handle"></div>
   <div class="modal-ttl">Add to Evidence Log</div>
   <div class="form-group"><div class="form-lbl">Type</div><div class="evtype-row"><div class="evtype-chip on win" id="ev-win" onclick="setEvType('win')">&#127942; Win</div><div class="evtype-chip compliment" id="ev-compliment" onclick="setEvType('compliment')">&#128150; Compliment</div><div class="evtype-chip moment" id="ev-moment" onclick="setEvType('moment')">&#10024; Moment</div></div></div>
   <div class="form-group"><div class="form-lbl">What happened?</div><textarea class="form-inp" id="evidence-text" placeholder="e.g. Someone said my work was really impressive today..." style="height:100px"></textarea></div>
@@ -907,7 +960,6 @@ var MOODS=[{id:'great',e:'&#128516;',l:'Great',c:'#7bc47e'},{id:'good',e:'&#1285
 var QUOTES=[{q:'Fill your paper with the breathings of your heart.',a:'William Wordsworth'},{q:'Journal writing is a voyage to the interior.',a:'Christina Baldwin'},{q:'In the journal I do not just express myself — I create myself.',a:'Susan Sontag'},{q:'Write hard and clear about what hurts.',a:'Ernest Hemingway'},{q:'There is no greater agony than bearing an untold story inside you.',a:'Maya Angelou'},{q:'The scariest moment is always just before you start.',a:'Stephen King'},{q:'A poem begins as a lump in the throat, a sense of wrong.',a:'Robert Frost'},{q:'I write to give myself strength. I write to be the characters that I am not.',a:'Joss Whedon'},{q:'Keep a diary and one day it\'ll keep you.',a:'Mae West'},{q:'I can shake off everything as I write; my sorrows disappear.',a:'Anne Frank'},{q:'The wound is the place where the light enters you.',a:'Rumi'},{q:'What you seek is seeking you.',a:'Rumi'},{q:'The world always seems brighter when you\'ve just made something.',a:'Neil Gaiman'},{q:'Start writing. The water does not flow until the faucet is turned on.',a:'Louis L\'Amour'},{q:'Writing is a way of talking without being interrupted.',a:'Jules Renard'},{q:'You have to write the book that wants to be written.',a:'Madeleine L\'Engle'},{q:'Poetry is when an emotion has found its thought and the thought has found words.',a:'Robert Frost'},{q:'Not all those who wander are lost.',a:'J.R.R. Tolkien'},{q:'She is too fond of books, and it has turned her brain.',a:'Louisa May Alcott'},{q:'I am not afraid of storms, for I am learning how to sail my ship.',a:'Louisa May Alcott'}];
 var PROMPTS=['What made you smile today, even briefly?','Describe a moment this week when you felt truly yourself.','What are you avoiding, and why?','Write a letter to someone you haven\'t forgiven yet — including yourself.','If your feelings today were a weather pattern, what would they look like?','What\'s one thing you wish people understood about you?','Describe your current chapter in three words.','What would you do if you knew you couldn\'t fail?','What has changed in you over the past year?','Write about a sound that comforts you.','What does home feel like to you right now?','What are you secretly proud of?','What does rest really feel like for you?','If your life right now were a book title, what would it be?','Write about a time you surprised yourself.','What emotion have you been carrying the longest?','What are you ready to let go of?','What do you want more of? What do you want less of?','Finish this sentence: I feel most alive when...','What does your body need right now?','Write about your relationship with your own mind.','What belief have you changed your mind about recently?','Who made you feel seen this week?','What would you tell yourself six months ago?'];
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-var DASH_METRICS=[{id:'energy',label:'Energy Level',icon:'⚡'},{id:'confidence',label:'Confidence',icon:'💪'},{id:'social',label:'Social Satisfaction',icon:'💬'},{id:'productivity',label:'Productivity',icon:'🎯'},{id:'emotional',label:'Emotional Stability',icon:'🌊'}];
 var LETTER_TYPES=['A person I miss','Someone I resent','My past self','My future self','Someone who hurt me','My anxiety','Someone I love','Other...'];
 var DREAM_TYPES=['Dream','2am thought','Random realization','Intrusive thought','Shower thought'];
 
@@ -970,7 +1022,7 @@ function showPage(name){
   document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
   var nb=document.getElementById('nav-'+name);if(nb)nb.classList.add('active');
-  var map={home:renderHome,entries:renderEntries,poems:renderPoemBook,'poem-ideas':renderPoemIdeas,rant:renderRant,letters:renderLetters,loops:renderLoops,evidence:renderEvidence,social:renderSocial,dreams:renderDreams,dashboard:renderDashboard,monthly:renderMonthly,settings:renderSettings,goals:renderGoals};
+  var map={home:renderHome,entries:renderEntries,poems:renderPoemBook,'vocab':renderVocab,'ideas':renderIdeas,rant:renderRant,letters:renderLetters,social:renderSocial,dreams:renderDreams,monthly:renderMonthly,settings:renderSettings,goals:renderGoals};
   if(map[name])map[name]();
 }
 
@@ -1570,14 +1622,14 @@ document.getElementById('btn-del-view').addEventListener('click',function(){
   var data=db();var stores={entry:'entries',poem:'poems',rant:'rants',letter:'letters',loop:'loops',evidence:'evidence',social:'social',dream:'dreams'};
   var store=stores[_viewType]||'entries';if(data[store])delete data[store][_viewDate];saveDb(data);closeModal('modal-view');
   renderHome();
-  var renders={entries:renderEntries,poems:renderPoems,rant:renderRant,letters:renderLetters,loops:renderLoops,evidence:renderEvidence,social:renderSocial,dreams:renderDreams};
+  var renders={entries:renderEntries,poems:renderPoems,rant:renderRant,letters:renderLetters,social:renderSocial,dreams:renderDreams};
   if(renders[_viewType+'s'])renders[_viewType+'s']();
   else if(_viewType==='entry')renderEntries();
   showToast('Deleted');
 });
 document.getElementById('btn-edit-view').addEventListener('click',function(){
   if(!_viewDate)return;closeModal('modal-view');
-  var editMap={entry:openEditEntry,poem:openEditPoem,rant:openEditRant,letter:openEditLetter,loop:openEditLoop,evidence:openEditEvidence,social:openEditSocial,dream:openEditDream};
+  var editMap={entry:openEditEntry,poem:openEditPoem,rant:openEditRant,letter:openEditLetter,social:openEditSocial,dream:openEditDream};
   if(editMap[_viewType])editMap[_viewType](_viewDate);
 });
 
@@ -1585,8 +1637,8 @@ document.getElementById('btn-edit-view').addEventListener('click',function(){
 var _editDate=null,_photoData=null,_selMood='good',_entryTags=[];
 function openNewEntry(){
   var page=document.querySelector('.page.active').id;
-  var pageMap={'page-poems':'poem','page-rant':'rant','page-letters':'letter','page-loops':'loop','page-evidence':'evidence','page-social':'social','page-dreams':'dream','page-poem-ideas':'poem-idea'};
-  if(pageMap[page]){var fn={poem:openNewPoem,rant:openNewRant,letter:openNewLetter,loop:openNewLoop,evidence:openNewEvidence,social:openNewSocial,dream:openNewDream,'poem-idea':openNewIdea};fn[pageMap[page]]();return;}
+  var pageMap={'page-poems':'poem','page-rant':'rant','page-letters':'letter','page-social':'social','page-dreams':'dream','page-ideas':'idea','page-vocab':'vocab'};
+  if(pageMap[page]){var fn={poem:openNewPoem,rant:openNewRant,letter:openNewLetter,social:openNewSocial,dream:openNewDream,'idea':openIdeaPicker,'vocab':openNewVocab};fn[pageMap[page]]();return;}
   _editDate=null;_photoData=null;_selMood='good';_entryTags=[];
   document.getElementById('inp-title').value='';document.getElementById('inp-body').value='';
   document.getElementById('g1').value='';document.getElementById('g2').value='';document.getElementById('g3').value='';
@@ -1677,18 +1729,10 @@ function renderLetters(){var data=db();var letters=data.letters||{};var keys=Obj
 
 // THOUGHT LOOPS
 var _editLoop=null;
-function openNewLoop(){_editLoop=null;['loop-thought','loop-why','loop-worst','loop-truth'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('loop-modal-ttl').textContent='New Thought Loop';document.getElementById('btn-save-loop').textContent='Break the Loop';document.getElementById('modal-loop').classList.add('open');}
-function openEditLoop(ds){var data=db();var e=(data.loops||{})[ds];if(!e)return;_editLoop=ds;document.getElementById('loop-thought').value=e.thought||'';document.getElementById('loop-why').value=e.why||'';document.getElementById('loop-worst').value=e.worst||'';document.getElementById('loop-truth').value=e.truth||'';document.getElementById('modal-loop').classList.add('open');}
-document.getElementById('btn-save-loop').addEventListener('click',function(){var thought=document.getElementById('loop-thought').value.trim();if(!thought){showToast('What\'s the thought?');return;}var data=db();if(!data.loops)data.loops={};var ds=_editLoop||(today()+'-lo'+Date.now());data.loops[ds]={thought:thought,why:document.getElementById('loop-why').value.trim(),worst:document.getElementById('loop-worst').value.trim(),truth:document.getElementById('loop-truth').value.trim(),ts:Date.now()};saveDb(data);closeModal('modal-loop');renderLoops();renderHome();showToast('Loop broken.');});
-function renderLoops(){var data=db();var loops=data.loops||{};var keys=Object.keys(loops).sort(function(a,b){return(loops[b].ts||0)-(loops[a].ts||0);});var list=document.getElementById('loops-list');if(!keys.length){list.innerHTML='<div class="empty"><div class="empty-e">🧠</div><div class="empty-t">No thought loops captured</div><div class="empty-s">Next time your mind spirals, come here</div></div>';return;}list.innerHTML='';keys.forEach(function(ds){var l=loops[ds];var card=document.createElement('div');card.className='tloop-card';var html='<div class="tloop-thought">'+(l.thought||'')+'</div>';if(l.why)html+='<div class="tloop-field"><div class="tloop-dot" style="background:var(--rose)"></div><div class="tloop-label">Why</div><div class="tloop-val">'+l.why+'</div></div>';if(l.truth)html+='<div class="tloop-field"><div class="tloop-dot" style="background:var(--sage)"></div><div class="tloop-label">Truth</div><div class="tloop-val">'+l.truth+'</div></div>';html+='<div style="font-size:11px;color:var(--muted);margin-top:6px">'+fmtShort(ds.slice(0,10))+'</div>';card.innerHTML=html;card.addEventListener('click',function(){openViewEntry(ds,'loop');});list.appendChild(card);});}
 
 // EVIDENCE
 var _editEvidence=null,_evType='win';
-function openNewEvidence(){_editEvidence=null;_evType='win';document.getElementById('evidence-text').value='';document.getElementById('evidence-source').value='';setEvType('win');document.getElementById('modal-evidence').classList.add('open');}
-function openEditEvidence(ds){var data=db();var e=(data.evidence||{})[ds];if(!e)return;_editEvidence=ds;_evType=e.evtype||'win';document.getElementById('evidence-text').value=e.text||'';document.getElementById('evidence-source').value=e.source||'';setEvType(_evType);document.getElementById('modal-evidence').classList.add('open');}
 function setEvType(t){_evType=t;['win','compliment','moment'].forEach(function(id){var el=document.getElementById('ev-'+id);el.className='evtype-chip'+(t===id?' on '+t:'');});}
-document.getElementById('btn-save-evidence').addEventListener('click',function(){var text=document.getElementById('evidence-text').value.trim();if(!text){showToast('What happened?');return;}var data=db();if(!data.evidence)data.evidence={};var ds=_editEvidence||(today()+'-ev'+Date.now());data.evidence[ds]={evtype:_evType,text:text,source:document.getElementById('evidence-source').value.trim(),ts:Date.now()};saveDb(data);closeModal('modal-evidence');renderEvidence();renderHome();showToast('Logged!');});
-function renderEvidence(){var data=db();var ev=data.evidence||{};var keys=Object.keys(ev).sort(function(a,b){return(ev[b].ts||0)-(ev[a].ts||0);});var list=document.getElementById('evidence-list');if(!keys.length){list.innerHTML='<div class="empty"><div class="empty-e">&#127942;</div><div class="empty-t">Start logging evidence</div><div class="empty-s">Your brain forgets the good stuff. This won\'t.</div></div>';return;}list.innerHTML='';var colors={win:'var(--sage)',compliment:'var(--lav)',moment:'var(--gold)'};keys.forEach(function(ds){var e=ev[ds];var card=document.createElement('div');card.className='evidence-card';card.innerHTML='<div class="evidence-type" style="color:'+colors[e.evtype||'win']+'">'+(e.evtype||'win').toUpperCase()+'</div><div class="evidence-text">'+(e.text||'')+'</div>'+(e.source?'<div style="font-size:11px;color:var(--muted);margin-top:4px">From: '+e.source+'</div>':'')+'<div class="evidence-date">'+fmtShort(ds.slice(0,10))+'</div>';card.addEventListener('click',function(){openViewEntry(ds,'evidence');});list.appendChild(card);});}
 
 // SOCIAL
 var _editSocial=null,_verdict='respected';
@@ -1708,37 +1752,6 @@ function renderDreams(){var data=db();var dreams=data.dreams||{};var keys=Object
 
 // DASHBOARD
 var _dashVals={energy:5,confidence:5,social:5,productivity:5,emotional:5};
-function renderDashboard(){
-  var now=new Date();var dow=now.getDay()||7;var mon=new Date(now.getTime());mon.setDate(now.getDate()-dow+1);
-  document.getElementById('dash-week-label').textContent='Week of '+mon.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
-  var data=db();var existing=(data.dashboard||{})[weekKey()];
-  if(existing)_dashVals=Object.assign({},existing);
-  var sl=document.getElementById('dash-sliders');sl.innerHTML='';
-  DASH_METRICS.forEach(function(m){
-    var div=document.createElement('div');div.className='dash-metric';
-    div.innerHTML='<div class="dash-metric-top"><div class="dash-metric-name">'+m.icon+' '+m.label+'</div><div class="dash-metric-val" id="dv-'+m.id+'">'+(_dashVals[m.id]||5)+'</div></div>'+
-      '<div class="slider-row"><input type="range" class="metric-slider" id="ds-'+m.id+'" min="1" max="10" value="'+(_dashVals[m.id]||5)+'" oninput="updateDashVal(\''+m.id+'\',this.value)"><div style="font-size:10px;color:var(--muted);width:16px;text-align:center">10</div></div>';
-    sl.appendChild(div);
-  });
-  renderDashHistory();
-}
-function updateDashVal(id,v){_dashVals[id]=parseInt(v);document.getElementById('dv-'+id).textContent=v;}
-function saveDashboard(){var data=db();if(!data.dashboard)data.dashboard={};data.dashboard[weekKey()]=Object.assign({},_dashVals);saveDb(data);renderDashHistory();showToast('Dashboard saved!');}
-function renderDashHistory(){
-  var data=db();var history=data.dashboard||{};var keys=Object.keys(history).sort().reverse().slice(0,8);
-  var wrap=document.getElementById('dash-history-wrap');if(!keys.length){wrap.innerHTML='<div class="empty" style="padding:20px"><div class="empty-s">Save your first week to see history</div></div>';return;}
-  wrap.innerHTML='';
-  keys.forEach(function(wk){
-    var vals=history[wk];var card=document.createElement('div');card.className='dash-history';
-    var d=new Date(wk.replace('W','').slice(0,4)+'-'+wk.replace('W','').slice(4,6)+'-'+wk.replace('W','').slice(6,8)+'T12:00:00');
-    card.innerHTML='<div class="dash-history-title">Week of '+d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+'</div>';
-    DASH_METRICS.forEach(function(m){
-      var v=vals[m.id]||0;var pct=v*10;
-      card.innerHTML+='<div class="mbar-row"><div class="mbar-e">'+m.icon+'</div><div class="mbar-bg"><div class="mbar-fill" style="width:'+pct+'%;background:var(--rose3)"></div></div><div class="mbar-n">'+v+'</div></div>';
-    });
-    wrap.appendChild(card);
-  });
-}
 
 // MONTHLY
 var _mY=new Date().getFullYear(),_mM=new Date().getMonth();
@@ -1768,7 +1781,7 @@ function renderSettings(){
   document.getElementById('theme-status').textContent=document.body.classList.contains('dark')?'Dark':'Light';
   var allDates=Object.keys(entries);document.getElementById('ss-total').textContent=allDates.length+' entries';
   document.getElementById('ss-poems').textContent=Object.keys(poems).length+' poems';
-  document.getElementById('ss-letters').textContent=Object.keys(letters).length+' letters';
+  var ssv=document.getElementById('ss-vocab');if(ssv)ssv.textContent=Object.keys(data.vocab||{}).length+' words';
   var tw=0;allDates.forEach(function(d){tw+=wc((entries[d].body||'')+(entries[d].title||''));});
   document.getElementById('ss-wc').textContent=tw.toLocaleString('en-IN')+' words';
   document.getElementById('ss-streak').textContent=calcStreak()+' days';
@@ -1777,7 +1790,7 @@ function renderSettings(){
 function clearAll(){if(!confirm('Delete ALL data? Cannot be undone.'))return;localStorage.removeItem('inkwell5');renderHome();showToast('Cleared');}
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-['modal-entry','modal-view','modal-poem','modal-rant','modal-letter','modal-loop','modal-evidence','modal-social','modal-dream','modal-pin','modal-goal','modal-poem-idea'].forEach(function(id){document.getElementById(id).addEventListener('click',function(e){if(e.target===this)closeModal(id);});});
+['modal-entry','modal-view','modal-poem','modal-rant','modal-letter','modal-social','modal-dream','modal-pin','modal-goal','modal-poem-idea'].forEach(function(id){document.getElementById(id).addEventListener('click',function(e){if(e.target===this)closeModal(id);});});
 
 // ══════════════════════════════════════════════
 // HAPTIC ENGINE
@@ -1971,7 +1984,7 @@ function makeSwipeCard(innerCard, ds, type, menuItems){
 // ── CONTEXT MENU ITEMS builder ──
 function buildMenuItems(ds, type, wrap){
   var stores={entry:'entries',poem:'poems',rant:'rants',letter:'letters',loop:'loops',evidence:'evidence',social:'social',dream:'dreams'};
-  var editFns={entry:openEditEntry,poem:openEditPoem,rant:openEditRant,letter:openEditLetter,loop:openEditLoop,evidence:openEditEvidence,social:openEditSocial,dream:openEditDream};
+  var editFns={entry:openEditEntry,poem:openEditPoem,rant:openEditRant,letter:openEditLetter,social:openEditSocial,dream:openEditDream};
   return [
     {icon:'✏️',label:'Edit',action:function(){if(editFns[type])editFns[type](ds);}},
     {icon:'📋',label:'Duplicate',action:function(){
@@ -2064,7 +2077,7 @@ makeEntryCard=function(ds,entry,type){
         var page=document.querySelector('.page.active');
         if(page){
           var id=page.id.replace('page-','');
-          var renders={home:renderHome,entries:renderEntries,poems:renderPoems,rant:renderRant,letters:renderLetters,loops:renderLoops,evidence:renderEvidence,social:renderSocial,dreams:renderDreams,dashboard:renderDashboard,monthly:renderMonthly,settings:renderSettings};
+          var renders={home:renderHome,entries:renderEntries,poems:renderPoems,rant:renderRant,letters:renderLetters,social:renderSocial,dreams:renderDreams,monthly:renderMonthly,settings:renderSettings};
           if(renders[id])renders[id]();
         }
         showToast('Refreshed ✓');
@@ -2166,6 +2179,185 @@ function renderPoemIdeas(){
       ];
     });
     list.appendChild(swipeWrap);
+  });
+}
+
+
+// ══ VOCAB BUILDER ══
+var _editVocabId=null,_vocabPOS='adjective';
+
+function setPOS(el,pos){
+  _vocabPOS=pos;
+  document.getElementById('pos-row').querySelectorAll('.dream-chip').forEach(function(c){c.classList.remove('on');});
+  el.classList.add('on');
+}
+function openNewVocab(){
+  _editVocabId=null;_vocabPOS='adjective';
+  ['vocab-word','vocab-def','vocab-example'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('vocab-modal-ttl').textContent='Add Word';
+  document.getElementById('btn-save-vocab').textContent='Save Word';
+  document.getElementById('pos-row').querySelectorAll('.dream-chip').forEach(function(c,i){c.classList.toggle('on',i===0);});
+  document.getElementById('modal-vocab').classList.add('open');
+}
+function openEditVocab(id){
+  var data=db();var e=(data.vocab||{})[id];if(!e)return;
+  _editVocabId=id;_vocabPOS=e.pos||'adjective';
+  document.getElementById('vocab-word').value=e.word||'';
+  document.getElementById('vocab-def').value=e.def||'';
+  document.getElementById('vocab-example').value=e.example||'';
+  document.getElementById('vocab-modal-ttl').textContent='Edit Word';
+  document.getElementById('btn-save-vocab').textContent='Update Word';
+  document.getElementById('pos-row').querySelectorAll('.dream-chip').forEach(function(c){c.classList.toggle('on',c.textContent.toLowerCase()===_vocabPOS);});
+  document.getElementById('modal-vocab').classList.add('open');
+}
+document.getElementById('btn-save-vocab').addEventListener('click',function(){
+  var word=document.getElementById('vocab-word').value.trim();
+  if(!word){showToast('Enter a word');return;}
+  var data=db();if(!data.vocab)data.vocab={};
+  var id=_editVocabId||(Date.now()+'-v');
+  data.vocab[id]={word:word,pos:_vocabPOS,def:document.getElementById('vocab-def').value.trim(),example:document.getElementById('vocab-example').value.trim(),mastered:false,ts:Date.now()};
+  saveDb(data);closeModal('modal-vocab');renderVocab();renderHome();showToast(_editVocabId?'Word updated!':'Word saved!');
+});
+
+function saveGeminiKey(){
+  var key=document.getElementById('gemini-key-inp').value.trim();
+  if(!key){showToast('Enter your API key');return;}
+  var data=db();data.geminiKey=key;saveDb(data);
+  document.getElementById('vocab-key-wrap').style.display='none';
+  showToast('Gemini key saved! Tap the button again.');
+}
+
+async function fetchAiWords(){
+  var data=db();var key=data.geminiKey;
+  if(!key){document.getElementById('vocab-key-wrap').style.display='block';showToast('Enter your Gemini API key first');return;}
+  var btn=document.getElementById('vocab-ai-btn');
+  btn.textContent='Generating...';btn.style.opacity='.7';btn.style.pointerEvents='none';
+  var existing=Object.values(data.vocab||{}).map(function(v){return v.word;}).join(', ');
+  var prompt='Generate 6 beautiful expressive English words for a young Indian woman who loves poetry, journaling, and Instagram captions. For each word provide: the word, its part of speech, a clear poetic definition, and one casual real-life example sentence a 20-year-old in India might say. Words already saved (avoid repeating): '+(existing||'none')+'. Return ONLY a raw JSON array — no markdown, no explanation — like: [{"word":"capricious","pos":"adjective","def":"Given to sudden unpredictable changes in mood","example":"She had a capricious personality — loving you one day, distant the next."}]';
+  try{
+    var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+    var result=await resp.json();
+    if(result.error){showToast('API error: '+(result.error.message||'check your key'));return;}
+    var text=result.candidates[0].content.parts[0].text.trim().replace(/```json|```/g,'').trim();
+    var words=JSON.parse(text);
+    var panel=document.getElementById('ai-sug-panel');var grid=document.getElementById('ai-sug-grid');
+    panel.style.display='block';grid.innerHTML='';
+    words.forEach(function(w){
+      var item=document.createElement('div');
+      item.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;';
+      item.innerHTML='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div><div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--text)">'+w.word+'</div><div style="font-size:11px;color:#6a8ac4;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">'+w.pos+'</div><div style="font-size:12px;color:var(--text2);line-height:1.6">'+w.def+'</div><div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:8px;border-left:3px solid #6a8ac4">'+w.example+'</div></div><button onclick="saveAiWord(this,''+encodeURIComponent(JSON.stringify(w))+'')" style="flex-shrink:0;font-size:11px;font-weight:700;color:#6a8ac4;background:none;border:1.5px solid #6a8ac4;border-radius:20px;padding:5px 12px;cursor:pointer;font-family:Nunito,sans-serif;white-space:nowrap;margin-top:2px">+ Save</button></div>';
+      grid.appendChild(item);
+    });
+    showToast('6 words generated ✓');
+  }catch(err){showToast('Error: '+err.message);}
+  finally{btn.textContent='✨ Suggest more with Gemini AI';btn.style.opacity='1';btn.style.pointerEvents='auto';}
+}
+
+function saveAiWord(btn,encoded){
+  var w=JSON.parse(decodeURIComponent(encoded));
+  var data=db();if(!data.vocab)data.vocab={};
+  var id=Date.now()+'-v';
+  data.vocab[id]={word:w.word,pos:w.pos,def:w.def,example:w.example,mastered:false,ts:Date.now()};
+  saveDb(data);btn.textContent='Saved ✓';btn.style.background='var(--sage)';btn.style.borderColor='var(--sage)';btn.style.color='white';btn.disabled=true;
+  renderVocab();renderHome();showToast(w.word+' saved!');
+}
+
+function toggleMastered(id,ev){
+  if(ev)ev.stopPropagation();
+  var data=db();if(!data.vocab||!data.vocab[id])return;
+  data.vocab[id].mastered=!data.vocab[id].mastered;saveDb(data);renderVocab();
+  showToast(data.vocab[id].mastered?'Marked as mastered ✓':'Unmarked');
+}
+
+function renderVocab(){
+  var data=db();var vocab=data.vocab||{};
+  var keys=Object.keys(vocab).sort(function(a,b){return(vocab[b].ts||0)-(vocab[a].ts||0);});
+  var query=(document.getElementById('vocab-search')||{}).value||'';query=query.toLowerCase();
+  var total=keys.length,mastered=keys.filter(function(k){return vocab[k].mastered;}).length;
+  var weekAgo=Date.now()-7*24*60*60*1000;var thisWeek=keys.filter(function(k){return(vocab[k].ts||0)>weekAgo;}).length;
+  var el=function(id){return document.getElementById(id);};
+  if(el('vb-total'))el('vb-total').textContent=total;
+  if(el('vb-mastered'))el('vb-mastered').textContent=mastered;
+  if(el('vb-week'))el('vb-week').textContent=thisWeek;
+  var filtered=keys.filter(function(k){var v=vocab[k];if(!query)return true;return v.word.toLowerCase().includes(query)||(v.def||'').toLowerCase().includes(query)||(v.example||'').toLowerCase().includes(query);});
+  var list=el('vocab-list');if(!list)return;
+  if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-e">&#128218;</div><div class="empty-t">No words yet</div><div class="empty-s">Add your own or let Gemini suggest some</div></div>';return;}
+  list.innerHTML='';
+  filtered.forEach(function(id){
+    var v=vocab[id];var card=document.createElement('div');
+    card.style.cssText='margin:0 16px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);cursor:pointer;';
+    card.innerHTML='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><div style="flex:1"><div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--text);margin-bottom:2px">'+v.word+'</div><div style="font-size:11px;color:#6a8ac4;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">'+(v.pos||'')+'</div>'+(v.def?'<div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:8px">'+v.def+'</div>':'')+(v.example?'<div style="font-size:13px;color:var(--muted);font-style:italic;padding:8px 12px;background:var(--surface2);border-radius:10px;border-left:3px solid #6a8ac4;line-height:1.7">'+v.example+'</div>':'')+'</div><button onclick="toggleMastered(''+id+'',event)" style="flex-shrink:0;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;font-family:Nunito,sans-serif;background:'+(v.mastered?'var(--sage)':'var(--surface2)')+';color:'+(v.mastered?'white':'var(--muted)')+'">'+( v.mastered?'✓ mastered':'master')+' </button></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px"><div style="font-size:11px;color:var(--muted)">'+fmtShort((new Date(v.ts)).toISOString().slice(0,10))+'</div><button onclick="openEditVocab(''+id+'')" style="font-size:11px;color:var(--rose);background:none;border:none;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">Edit</button></div>';
+    list.appendChild(card);
+  });
+}
+
+// ══ CREATIVE IDEAS (4 types) ══
+var _editIdeaId=null,_ideaTags=[],_ideaType='poem';
+var IDEA_META={poem:{label:'Poem Idea',color:'var(--lav)',bg:'#f0e8f8'},caption:{label:'Insta Caption',color:'#b87aa8',bg:'#fdeef8'},spark:{label:'Random Spark',color:'var(--gold)',bg:'#fff0e0'},obs:{label:'Observation',color:'var(--sage)',bg:'#e8f8ee'}};
+
+function openIdeaPicker(){
+  document.getElementById('modal-idea-pick').classList.add('open');
+}
+function openIdeaWrite(type){
+  _ideaType=type;_editIdeaId=null;_ideaTags=[];
+  closeModal('modal-idea-pick');
+  var labels={poem:'Your poem idea — a line, image, or theme',caption:'Your caption — make it stick',spark:'The spark — catch it before it fades',obs:'What did you notice?'};
+  var ttls={poem:'New Poem Idea',caption:'New Insta Caption',spark:'Random Spark ✨',obs:'New Observation'};
+  document.getElementById('idea-write-ttl').textContent=ttls[type];
+  document.getElementById('idea-write-lbl').textContent=labels[type];
+  document.getElementById('idea-body').value='';
+  document.getElementById('idea-source').value='';
+  renderTagsUI('idea-tags-wrap','idea-tag-inp',_ideaTags);
+  document.getElementById('modal-idea-write').classList.add('open');
+}
+function openEditIdea(id){
+  var data=db();var e=(data.ideas||{})[id];if(!e)return;
+  _editIdeaId=id;_ideaType=e.ideaType||'poem';_ideaTags=(e.tags||[]).slice();
+  var meta=IDEA_META[_ideaType]||IDEA_META.spark;
+  document.getElementById('idea-write-ttl').textContent='Edit '+meta.label;
+  document.getElementById('idea-write-lbl').textContent='Your idea';
+  document.getElementById('idea-body').value=e.body||'';
+  document.getElementById('idea-source').value=e.source||'';
+  renderTagsUI('idea-tags-wrap','idea-tag-inp',_ideaTags);
+  document.getElementById('modal-idea-write').classList.add('open');
+}
+document.getElementById('btn-save-idea').addEventListener('click',function(){
+  var body=document.getElementById('idea-body').value.trim();
+  if(!body){showToast('Write something first');return;}
+  var data=db();if(!data.ideas)data.ideas={};
+  var id=_editIdeaId||('idea-'+Date.now());
+  data.ideas[id]={ideaType:_ideaType,body:body,source:document.getElementById('idea-source').value.trim(),tags:_ideaTags.slice(),ts:Date.now()};
+  saveDb(data);closeModal('modal-idea-write');renderIdeas();renderHome();haptic('success');
+  showToast(_editIdeaId?'Updated!':'Idea saved!');
+});
+function renderIdeas(){
+  var data=db();var ideas=data.ideas||{};
+  var keys=Object.keys(ideas).sort(function(a,b){return(ideas[b].ts||0)-(ideas[a].ts||0);});
+  // type filter
+  var filterWrap=document.getElementById('ideas-type-filters');
+  if(filterWrap){
+    var activeFilter=filterWrap.dataset.active||'all';
+    filterWrap.innerHTML='';
+    var filters=[{id:'all',label:'All'}];
+    Object.keys(IDEA_META).forEach(function(k){filters.push({id:k,label:IDEA_META[k].label});});
+    filters.forEach(function(f){
+      var chip=document.createElement('div');chip.className='filter-chip'+(activeFilter===f.id?' on':'');chip.textContent=f.label;chip.style.whiteSpace='nowrap';
+      chip.addEventListener('click',function(){filterWrap.dataset.active=f.id;renderIdeas();});
+      filterWrap.appendChild(chip);
+    });
+    if(activeFilter!=='all')keys=keys.filter(function(k){return ideas[k].ideaType===activeFilter;});
+  }
+  var list=document.getElementById('ideas-list');if(!list)return;
+  if(!keys.length){list.innerHTML='<div class="empty"><div class="empty-e">&#128161;</div><div class="empty-t">No ideas yet</div><div class="empty-s">Tap the pen to catch a spark before it fades</div></div>';return;}
+  list.innerHTML='';
+  keys.forEach(function(id){
+    var e=ideas[id];var meta=IDEA_META[e.ideaType]||IDEA_META.spark;
+    var card=document.createElement('div');
+    card.style.cssText='margin:0 16px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);cursor:pointer;';
+    var badge='<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:'+meta.bg+';color:'+meta.color+';display:inline-block;margin-bottom:8px">'+meta.label+'</span>';
+    var tagsHtml=e.tags&&e.tags.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">'+e.tags.map(function(t){return'<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);font-weight:600">'+t+'</span>';}).join('')+'</div>':'';
+    card.innerHTML=badge+'<div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:var(--text);line-height:1.8;white-space:pre-wrap">'+e.body.replace(/</g,'&lt;')+'</div>'+(e.source?'<div style="font-size:11px;color:var(--muted);margin-top:5px">'+e.source+'</div>':'')+tagsHtml+'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px"><div style="font-size:11px;color:var(--muted)">'+fmtShort((new Date(e.ts)).toISOString().slice(0,10))+'</div><button onclick="openEditIdea(''+id+'')" style="font-size:11px;color:var(--rose);background:none;border:none;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">Edit</button></div>';
+    list.appendChild(card);
   });
 }
 
