@@ -593,6 +593,19 @@ body.dark .reminder-time{background:#3a1e28;}
 @media (min-width:768px){
   .goal-tab-row{margin:0 24px 12px;}
 }
+
+/* ── SWIPE GESTURES ── */
+.swipe-container{position:relative;overflow:hidden;margin:0 16px 10px;border-radius:var(--r);}
+.swipe-inner{transition:transform .25s cubic-bezier(.25,.46,.45,.94);will-change:transform;border-radius:var(--r);position:relative;z-index:2;}
+.swipe-inner.swiping{transition:none;}
+.swipe-bg-right{position:absolute;top:0;right:0;bottom:0;width:100%;background:#ff5c5c;border-radius:var(--r);display:flex;align-items:center;justify-content:flex-end;padding-right:24px;z-index:1;}
+.swipe-bg-right svg{width:22px;height:22px;stroke:white;fill:none;stroke-width:2;}
+.swipe-bg-left{position:absolute;top:0;left:0;bottom:0;width:100%;background:var(--surface2);border-radius:var(--r);display:flex;align-items:center;justify-content:flex-start;padding-left:24px;gap:10px;z-index:1;}
+.swipe-action-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 14px;border-radius:12px;background:none;border:none;cursor:pointer;font-size:10px;font-weight:700;font-family:Nunito,sans-serif;color:var(--text);}
+.swipe-action-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;}
+.swipe-action-btn.edit{color:var(--lav);}
+.swipe-action-btn.pin{color:var(--gold);}
+@media(min-width:768px){.swipe-container{margin:0 24px 10px;}}
 </style>
 </head>
 <body>
@@ -741,15 +754,6 @@ body.dark .reminder-time{background:#3a1e28;}
         <div style="flex:1;text-align:center;background:rgba(255,255,255,.6);border-radius:10px;padding:8px 4px"><div id="vb-mastered" style="font-family:Playfair Display,serif;font-size:22px;color:#6a8ac4">0</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">Mastered</div></div>
         <div style="flex:1;text-align:center;background:rgba(255,255,255,.6);border-radius:10px;padding:8px 4px"><div id="vb-week" style="font-family:Playfair Display,serif;font-size:22px;color:#6a8ac4">0</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">This Week</div></div>
       </div>
-    </div>
-    <button id="vocab-ai-btn" onclick="fetchAiWords()" style="margin:0 16px 10px;width:calc(100% - 32px);padding:13px;border-radius:14px;background:linear-gradient(135deg,#6a8ac4,#5070b0);border:none;color:white;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">&#10024; Suggest words with Gemini AI</button>
-    <div id="vocab-key-wrap" style="margin:0 16px 10px;display:none">
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Gemini API Key (free at aistudio.google.com)</div>
-      <div style="display:flex;gap:8px"><input class="form-inp" id="gemini-key-inp" placeholder="AIza..." style="margin:0;flex:1;padding:10px 12px;font-size:13px"><button onclick="saveGeminiKey()" style="padding:10px 14px;border-radius:12px;background:var(--rose);border:none;color:white;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;font-size:13px;white-space:nowrap">Save</button></div>
-    </div>
-    <div id="ai-sug-panel" style="margin:0 16px 12px;background:linear-gradient(135deg,#f4f6ff,#eef0ff);border:1px solid #c8d0f0;border-radius:var(--r);padding:14px;display:none">
-      <div style="font-size:10px;font-weight:700;color:#6a8ac4;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">&#10024; AI Suggestions — tap + to save</div>
-      <div id="ai-sug-grid"></div>
     </div>
     <div style="margin:0 16px 12px;position:relative"><svg viewBox="0 0 24 24" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;stroke:var(--muted);fill:none;stroke-width:1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-inp" id="vocab-search" placeholder="Search words..." oninput="renderVocab()" style="padding-left:42px"></div>
     <div id="vocab-list"></div>
@@ -1623,6 +1627,24 @@ function toggleIntention(i){var data=db();if(!data.intentions)return;data.intent
 function deleteIntention(i){var data=db();if(!data.intentions)return;data.intentions.splice(i,1);saveDb(data);renderIntentions();}
 
 function makeEntryCard(ds,entry,type){
+  var storeMap={entry:'entries',poem:'poems',rant:'rants',letter:'letters',dream:'dreams',idea:'ideas'};
+  var store=storeMap[type||'entry']||'entries';
+  function doDelete(){
+    haptic('heavy');
+    var data=db();if(data[store])delete data[store][ds];
+    saveDb(data);renderHome();
+    var renders={entries:renderEntries,poems:renderPoemBook,rant:renderRant,letters:renderLetters,dreams:renderDreams,ideas:renderIdeas};
+    if(renders[store])renders[store]();
+    showToast('Deleted');
+  }
+  function doEdit(){
+    var editFns={entry:openEditEntry,poem:openEditPoem,rant:openEditRant,letter:openEditLetter,dream:openEditDream};
+    if(editFns[type||'entry'])editFns[type||'entry'](ds);
+  }
+  var card=_buildEntryCard(ds,entry,type);
+  return makeSwipeable(card,doDelete,doEdit,null);
+}
+function _buildEntryCard(ds,entry,type){
   var card=document.createElement('div');card.className='entry-card';
   var mood=getMood(entry.mood||'okay');var html='';
   if(entry.photo)html+='<img class="entry-photo" src="'+entry.photo+'">';
@@ -2125,13 +2147,6 @@ function buildMenuItems(ds, type, wrap){
 }
 
 // ── OVERRIDE makeEntryCard to use swipe wrapper ──
-var _origMakeEntryCard=makeEntryCard;
-makeEntryCard=function(ds,entry,type){
-  var inner=_origMakeEntryCard(ds,entry,type);
-  // strip margin from inner card (wrap handles it)
-  inner.style.margin='0';
-  return makeSwipeCard(inner,ds,type||'entry',buildMenuItems);
-};
 
 // ══════════════════════════════════════════════
 // PULL TO REFRESH
@@ -2232,59 +2247,6 @@ document.getElementById('btn-save-vocab').addEventListener('click',function(){
   saveDb(data);closeModal('modal-vocab');renderVocab();renderHome();showToast(_editVocabId?'Word updated!':'Word saved!');
 });
 
-function saveGeminiKey(){
-  var key=document.getElementById('gemini-key-inp').value.trim();
-  if(!key){showToast('Enter your API key');return;}
-  var data=db();data.geminiKey=key;saveDb(data);
-  document.getElementById('vocab-key-wrap').style.display='none';
-  showToast('Gemini key saved! Tap the button again.');
-}
-
-async function fetchAiWords(){
-  var data=db();var key=data.geminiKey;
-  if(!key){document.getElementById('vocab-key-wrap').style.display='block';showToast('Enter your Gemini API key first');return;}
-  var btn=document.getElementById('vocab-ai-btn');
-  btn.textContent='Generating...';btn.style.opacity='.7';btn.style.pointerEvents='none';
-  var existing=Object.values(data.vocab||{}).map(function(v){return v.word;}).join(', ');
-  var prompt='Generate 6 beautiful expressive English words for a young Indian woman who loves poetry, journaling, and Instagram captions. For each word provide: the word, its part of speech, a clear poetic definition, and one casual real-life example sentence a 20-year-old in India might say. Words already saved (avoid repeating): '+(existing||'none')+'. Return ONLY a raw JSON array — no markdown — like: [{"word":"capricious","pos":"adjective","def":"Given to sudden unpredictable changes in mood","example":"She had a capricious personality — loving you one day, distant the next."}]';
-  try{
-    var resp=await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-    var result=await resp.json();
-    if(result.error){showToast('API error: '+(result.error.message||'check your key'));return;}
-    var text=result.candidates[0].content.parts[0].text.trim().replace(/```json|```/g,'').trim();
-    var words=JSON.parse(text);
-    var panel=document.getElementById('ai-sug-panel');var grid=document.getElementById('ai-sug-grid');
-    panel.style.display='block';grid.innerHTML='';
-    words.forEach(function(w,idx){
-      var item=document.createElement('div');
-      item.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;';
-      var wordDiv=document.createElement('div');
-      wordDiv.style.cssText='display:flex;align-items:flex-start;justify-content:space-between;gap:8px';
-      var info=document.createElement('div');info.style.flex='1';
-      var wrd=document.createElement('div');wrd.style.cssText='font-family:serif;font-size:17px;color:var(--text)';wrd.textContent=w.word;
-      var pos=document.createElement('div');pos.style.cssText='font-size:11px;color:#6a8ac4;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px';pos.textContent=w.pos;
-      var def=document.createElement('div');def.style.cssText='font-size:12px;color:var(--text2);line-height:1.6';def.textContent=w.def;
-      var ex=document.createElement('div');ex.style.cssText='font-size:12px;color:var(--muted);font-style:italic;margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:8px;border-left:3px solid #6a8ac4';ex.textContent=w.example;
-      info.appendChild(wrd);info.appendChild(pos);info.appendChild(def);info.appendChild(ex);
-      var saveBtn=document.createElement('button');
-      saveBtn.textContent='+ Save';
-      saveBtn.style.cssText='flex-shrink:0;font-size:11px;font-weight:700;color:#6a8ac4;background:none;border:1.5px solid #6a8ac4;border-radius:20px;padding:5px 12px;cursor:pointer;font-family:Nunito,sans-serif;white-space:nowrap;margin-top:2px';
-      (function(word,btn){btn.addEventListener('click',function(){saveAiWord(btn,word);});})(w,saveBtn);
-      wordDiv.appendChild(info);wordDiv.appendChild(saveBtn);
-      item.appendChild(wordDiv);grid.appendChild(item);
-    });
-    showToast('6 words generated \u2713');
-  }catch(err){showToast('Error: '+err.message);}
-  finally{btn.textContent='\u2728 Suggest more with Gemini AI';btn.style.opacity='1';btn.style.pointerEvents='auto';}
-}
-
-function saveAiWord(btn,w){
-  var data=db();if(!data.vocab)data.vocab={};
-  var id=Date.now()+'-v';
-  data.vocab[id]={word:w.word,pos:w.pos,def:w.def,example:w.example,mastered:false,ts:Date.now()};
-  saveDb(data);btn.textContent='Saved ✓';btn.style.background='var(--sage)';btn.style.borderColor='var(--sage)';btn.style.color='white';btn.disabled=true;
-  renderVocab();renderHome();showToast(w.word+' saved!');
-}
 
 function toggleMastered(id,ev){
   if(ev)ev.stopPropagation();
@@ -2548,6 +2510,98 @@ function openEditIdea(id){
   document.getElementById('modal-idea-write').classList.add('open');
 }
 
+
+// ── SWIPE TO DELETE / MENU ──
+function makeSwipeable(card, onDelete, onEdit, onPin){
+  var wrap=document.createElement('div');wrap.className='swipe-container';
+  // right bg = delete (red)
+  var bgRight=document.createElement('div');bgRight.className='swipe-bg-right';
+  bgRight.innerHTML='<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+  // left bg = action menu
+  var bgLeft=document.createElement('div');bgLeft.className='swipe-bg-left';
+  var editBtn=document.createElement('button');editBtn.className='swipe-action-btn edit';
+  editBtn.innerHTML='<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit';
+  if(onPin){
+    var pinBtn=document.createElement('button');pinBtn.className='swipe-action-btn pin';
+    pinBtn.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Pin';
+    pinBtn.addEventListener('click',function(){resetSwipe(inner);onPin();});
+    bgLeft.appendChild(pinBtn);
+  }
+  editBtn.addEventListener('click',function(){resetSwipe(inner);if(onEdit)onEdit();});
+  bgLeft.appendChild(editBtn);
+
+  var inner=document.createElement('div');inner.className='swipe-inner';
+  inner.appendChild(card);
+  wrap.appendChild(bgRight);wrap.appendChild(bgLeft);wrap.appendChild(inner);
+
+  // Touch handling
+  var startX=0,startY=0,currentX=0,locked=false,dir=null,THRESHOLD=80;
+  inner.addEventListener('touchstart',function(e){
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    currentX=0;locked=false;dir=null;
+    inner.classList.add('swiping');
+  },{passive:true});
+  inner.addEventListener('touchmove',function(e){
+    var dx=e.touches[0].clientX-startX;
+    var dy=e.touches[0].clientY-startY;
+    if(!locked){
+      if(Math.abs(dx)<8&&Math.abs(dy)<8)return;
+      locked=true;dir=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):'vert';
+    }
+    if(dir==='vert')return;
+    e.preventDefault();
+    currentX=dx;
+    inner.style.transform='translateX('+dx+'px)';
+    // Color feedback
+    if(dx>40){bgRight.style.opacity='0';bgLeft.style.opacity='0';}
+    else if(dx<-40){bgLeft.style.opacity='1';bgRight.style.opacity='0';}
+    else if(dx>0){bgRight.style.opacity=(dx/THRESHOLD)+'';bgLeft.style.opacity='0';}
+    else{bgRight.style.opacity='0';bgLeft.style.opacity='0';}
+  },{passive:false});
+  inner.addEventListener('touchend',function(){
+    inner.classList.remove('swiping');
+    if(dir==='vert'){resetSwipe(inner);return;}
+    if(currentX>THRESHOLD){
+      // swipe right = DELETE
+      haptic('heavy');
+      inner.style.transform='translateX(110%)';
+      inner.style.transition='transform .3s ease';
+      bgRight.style.opacity='1';
+      setTimeout(function(){
+        wrap.style.maxHeight=wrap.offsetHeight+'px';
+        wrap.style.overflow='hidden';
+        setTimeout(function(){
+          wrap.style.maxHeight='0';wrap.style.marginBottom='0';wrap.style.opacity='0';
+          wrap.style.transition='all .3s ease';
+          setTimeout(function(){wrap.remove();if(onDelete)onDelete();},300);
+        },50);
+      },250);
+    } else if(currentX<-THRESHOLD){
+      // swipe left = show menu (snap open)
+      haptic('light');
+      inner.style.transform='translateX(-140px)';
+    } else {
+      resetSwipe(inner);
+    }
+  },{passive:true});
+  // tap on card resets swipe
+  inner.addEventListener('click',function(e){
+    if(Math.abs(currentX)>5){e.stopPropagation();resetSwipe(inner);}
+  });
+  return wrap;
+}
+
+function resetSwipe(inner){
+  inner.style.transition='transform .25s cubic-bezier(.25,.46,.45,.94)';
+  inner.style.transform='translateX(0)';
+  var wrap=inner.parentElement;
+  if(wrap){
+    var bl=wrap.querySelector('.swipe-bg-left');
+    var br=wrap.querySelector('.swipe-bg-right');
+    if(bl)bl.style.opacity='0';
+    if(br)br.style.opacity='0';
+  }
+}
 initTheme();checkPin();fetchWeather();renderHome();
 
 </script>
