@@ -2248,7 +2248,7 @@ async function fetchAiWords(){
   var existing=Object.values(data.vocab||{}).map(function(v){return v.word;}).join(', ');
   var prompt='Generate 6 beautiful expressive English words for a young Indian woman who loves poetry, journaling, and Instagram captions. For each word provide: the word, its part of speech, a clear poetic definition, and one casual real-life example sentence a 20-year-old in India might say. Words already saved (avoid repeating): '+(existing||'none')+'. Return ONLY a raw JSON array — no markdown — like: [{"word":"capricious","pos":"adjective","def":"Given to sudden unpredictable changes in mood","example":"She had a capricious personality — loving you one day, distant the next."}]';
   try{
-    var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+    var resp=await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
     var result=await resp.json();
     if(result.error){showToast('API error: '+(result.error.message||'check your key'));return;}
     var text=result.candidates[0].content.parts[0].text.trim().replace(/```json|```/g,'').trim();
