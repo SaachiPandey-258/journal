@@ -932,18 +932,6 @@ body.dark .reminder-time{background:#3a1e28;}
  </div>
 </div>
 
-<!-- POEM IDEA MODAL -->
-<div class="overlay" id="modal-poem-idea">
- <div class="modal">
-  <div class="drag-handle"></div>
-  <div class="modal-ttl" id="poem-idea-modal-ttl">New Poem Idea</div>
-  <div class="form-group"><div class="form-lbl">The spark — a line, image, feeling, word</div><textarea class="form-inp poem-inp" id="idea-body" placeholder="e.g. &#10;&#10;the way she laughed like she was apologising for it&#10;&#10;or just: rain on a Sunday&#10;or: the guilt of forgetting someone's face"></textarea></div>
-  <div class="form-group"><div class="form-lbl">Where it came from (optional)</div><input class="form-inp" id="idea-source" placeholder="e.g. 2am, bus ride, shower..."></div>
-  <div class="form-group"><div class="form-lbl">Tags</div><div class="tags-inp-wrap" id="idea-tags-wrap"><input class="tag-raw-inp" id="idea-tag-inp" placeholder="grief, love, memory..." onkeydown="handleTagKey(event,'idea-tags-wrap','idea-tag-inp',_ideaTags)"></div></div>
-  <button class="btn btn-rose" id="btn-save-idea">Save Idea</button>
-  <button class="btn btn-ghost" onclick="closeModal('modal-poem-idea')">Cancel</button>
- </div>
-</div>
 <div class="overlay" id="modal-goal">
  <div class="modal">
   <div class="drag-handle"></div>
@@ -2207,87 +2195,6 @@ document.getElementById('fab').addEventListener('touchstart',function(){haptic('
 
 // ══════════════════════════════════════════════
 // POEM IDEAS
-// ══════════════════════════════════════════════
-var _editIdea=null,_ideaTags=[];
-
-function openNewIdea(){
-  _editIdea=null;_ideaTags=[];
-  document.getElementById('idea-body').value='';
-  document.getElementById('idea-source').value='';
-  document.getElementById('poem-idea-modal-ttl').textContent='New Poem Idea';
-  document.getElementById('btn-save-idea').textContent='Save Idea';
-  renderTagsUI('idea-tags-wrap','idea-tag-inp',_ideaTags);
-  document.getElementById('modal-poem-idea').classList.add('open');
-}
-function openEditIdea(id){
-  var data=db();var e=(data.poemIdeas||{})[id];if(!e)return;
-  _editIdea=id;_ideaTags=(e.tags||[]).slice();
-  document.getElementById('idea-body').value=e.body||'';
-  document.getElementById('idea-source').value=e.source||'';
-  document.getElementById('poem-idea-modal-ttl').textContent='Edit Idea';
-  document.getElementById('btn-save-idea').textContent='Update Idea';
-  renderTagsUI('idea-tags-wrap','idea-tag-inp',_ideaTags);
-  document.getElementById('modal-poem-idea').classList.add('open');
-}
-
-document.getElementById('btn-save-idea').addEventListener('click',function(){
-  var body=document.getElementById('idea-body').value.trim();
-  if(!body){showToast('Write something first');return;}
-  var data=db();if(!data.poemIdeas)data.poemIdeas={};
-  var id=_editIdea||('idea-'+Date.now());
-  data.poemIdeas[id]={body:body,source:document.getElementById('idea-source').value.trim(),tags:_ideaTags.slice(),ts:Date.now()};
-  saveDb(data);closeModal('modal-poem-idea');renderPoemIdeas();haptic('success');
-  showToast(_editIdea?'Idea updated!':'Idea saved!');
-});
-
-function renderPoemIdeas(){
-  var data=db();var ideas=data.poemIdeas||{};
-  var keys=Object.keys(ideas).sort(function(a,b){return(ideas[b].ts||0)-(ideas[a].ts||0);});
-  var list=document.getElementById('ideas-list');if(!list)return;
-  if(!keys.length){
-    list.innerHTML='<div class="empty"><div class="empty-e">&#128161;</div><div class="empty-t">No ideas yet</div><div class="empty-s">Tap the pen to catch a spark before it fades</div></div>';
-    return;
-  }
-  list.innerHTML='';
-  keys.forEach(function(id){
-    var e=ideas[id];
-    var wrap=document.createElement('div');wrap.style.margin='0 16px 10px';
-    var card=document.createElement('div');
-    card.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);cursor:pointer;';
-    var tagsHtml=e.tags&&e.tags.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">'+e.tags.map(function(t){return'<span class="poem-tag-chip">'+t+'</span>';}).join('')+'</div>':'';
-    var sourceHtml=e.source?'<div style="font-size:11px;color:var(--muted);margin-top:4px">'+e.source+'</div>':'';
-    card.innerHTML=
-      '<div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;color:var(--text);line-height:1.8;white-space:pre-wrap">'+
-        e.body.replace(/</g,'&lt;')+
-      '</div>'+
-      sourceHtml+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">'+
-        '<div style="font-size:11px;color:var(--muted)">'+fmtShort(new Date(e.ts).toISOString().slice(0,10))+'</div>'+
-        '<button onclick="openEditIdea(\''+id+'\')" style="font-size:11px;color:var(--rose);background:none;border:none;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">Edit</button>'+
-      '</div>'+tagsHtml;
-    card.addEventListener('click',function(ev){if(ev.target.tagName==='BUTTON')return;});
-    // make it swipeable too
-    wrap.appendChild(card);
-    var swipeWrap=makeSwipeCard(card,id,'poem-idea',function(ds,type,w){
-      return[
-        {icon:'✏️',label:'Edit',action:function(){openEditIdea(ds);}},
-        {icon:'📜',label:'Develop into Poem',action:function(){
-          var d2=db();var idea=(d2.poemIdeas||{})[ds];if(!idea)return;
-          closeContextMenu();openNewPoem();
-          setTimeout(function(){document.getElementById('poem-body').value=idea.body;},100);
-        }},
-        {icon:'🗑️',label:'Delete',danger:true,action:function(){
-          if(!confirm('Delete this idea?'))return;
-          var d2=db();if(d2.poemIdeas)delete d2.poemIdeas[ds];saveDb(d2);
-          haptic('heavy');if(w){w.style.opacity='0';setTimeout(function(){w.remove();},200);}
-          showToast('Idea deleted');
-        }}
-      ];
-    });
-    list.appendChild(swipeWrap);
-  });
-}
-
 
 // ══ VOCAB BUILDER ══
 var _editVocabId=null,_vocabPOS='adjective';
@@ -2341,7 +2248,7 @@ async function fetchAiWords(){
   var existing=Object.values(data.vocab||{}).map(function(v){return v.word;}).join(', ');
   var prompt='Generate 6 beautiful expressive English words for a young Indian woman who loves poetry, journaling, and Instagram captions. For each word provide: the word, its part of speech, a clear poetic definition, and one casual real-life example sentence a 20-year-old in India might say. Words already saved (avoid repeating): '+(existing||'none')+'. Return ONLY a raw JSON array — no markdown — like: [{"word":"capricious","pos":"adjective","def":"Given to sudden unpredictable changes in mood","example":"She had a capricious personality — loving you one day, distant the next."}]';
   try{
-    var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+    var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
     var result=await resp.json();
     if(result.error){showToast('API error: '+(result.error.message||'check your key'));return;}
     var text=result.candidates[0].content.parts[0].text.trim().replace(/```json|```/g,'').trim();
@@ -2614,6 +2521,33 @@ function importData(){
   };
   document.body.appendChild(inp);inp.click();document.body.removeChild(inp);
 }
+
+// ── IDEAS SAVE ──
+var _editIdeaId=null,_ideaTags=[],_ideaType='poem';
+
+document.getElementById('btn-save-idea').addEventListener('click',function(){
+  var body=document.getElementById('idea-body').value.trim();
+  if(!body){showToast('Write something first');return;}
+  var data=db();if(!data.ideas)data.ideas={};
+  var id=_editIdeaId||('idea-'+Date.now());
+  data.ideas[id]={ideaType:_ideaType,body:body,source:document.getElementById('idea-source').value.trim(),tags:_ideaTags.slice(),ts:Date.now()};
+  saveDb(data);closeModal('modal-idea-write');renderIdeas();renderHome();
+  haptic('success');showToast(_editIdeaId?'Idea updated!':'Idea saved!');
+  _editIdeaId=null;
+});
+
+function openEditIdea(id){
+  var data=db();var e=(data.ideas||{})[id];if(!e)return;
+  _editIdeaId=id;_ideaType=e.ideaType||'poem';_ideaTags=(e.tags||[]).slice();
+  var meta={poem:{label:'Edit Poem Idea'},caption:{label:'Edit Caption'},spark:{label:'Edit Spark'},obs:{label:'Edit Observation'}};
+  document.getElementById('idea-write-ttl').textContent=(meta[_ideaType]||{label:'Edit Idea'}).label;
+  document.getElementById('idea-write-lbl').textContent='Your idea';
+  document.getElementById('idea-body').value=e.body||'';
+  document.getElementById('idea-source').value=e.source||'';
+  renderTagsUI('idea-tags-wrap','idea-tag-inp',_ideaTags);
+  document.getElementById('modal-idea-write').classList.add('open');
+}
+
 initTheme();checkPin();fetchWeather();renderHome();
 
 </script>
