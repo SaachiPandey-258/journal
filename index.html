@@ -1741,7 +1741,8 @@ document.getElementById('btn-edit-view').addEventListener('click',function(){
 // ENTRY
 var _editDate=null,_photoData=null,_selMood='good',_entryTags=[];
 function openNewEntry(){
-  var page=document.querySelector('.page.active').id;
+  var _activePage=document.querySelector('.page.active');
+  var page=_activePage?_activePage.id:'page-home';
   var pageMap={'page-poems':'poem','page-rant':'rant','page-letters':'letter','page-social':'social','page-dreams':'dream','page-ideas':'idea','page-vocab':'vocab'};
   if(pageMap[page]){var fn={poem:openNewPoem,rant:openNewRant,letter:openNewLetter,social:openNewSocial,dream:openNewDream,'idea':openIdeaPicker,'vocab':openNewVocab};fn[pageMap[page]]();return;}
   _editDate=null;_photoData=null;_selMood='good';_entryTags=[];
@@ -2482,6 +2483,9 @@ function renderIdeas(){
   });
 }
 
+function openIdeaPicker(){
+  document.getElementById('modal-idea-pick').classList.add('open');
+}
 function openIdeaWrite(type){
   _ideaType=type;_editIdeaId=null;_ideaTags=[];
   closeModal('modal-idea-pick');
